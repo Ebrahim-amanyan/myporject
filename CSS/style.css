@@ -1,8 +1,54 @@
-h3{
-    text-align: center;
-    color: green;
-   
+@font-face {
+    font-family: "Shabnam-FD";
+    src: url(../font/woff2/Shabnam-FD.woff2) format("woff2");
 }
 
+body{
+    direction: rtl;
+    font-family: "Shabnam-FD";
+    box-sizing: border-box;
+    
+}
+h3{
+    margin-right: 30%;
+}
+.imgheder{
+    display: flex;
+}
 
+header{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search{
+    width: 160%;
+    height: 40px;
+    border-radius: 20px;
+    padding: 20px;
+    }
+
+    .button{
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: burlywood;
+    }
+
+    .contenr{
+display: flex;
+gap: 10px;
+    }
+
+    .box{
+        border: 1px solid black;
+        border-radius: 8px;
+        width: 200px;
+        height: 250px;
+    }
+
+    a{
+        text-decoration: none;
+    }
 
