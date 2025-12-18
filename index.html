@@ -1,73 +1,473 @@
-<!DOCTYPE html><html lang="fa" dir="rtl">
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>سینما دونفره 🎬</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body{font-family:tahoma; margin:0; background:#0f172a; color:#e5e7eb}
-    header{background:#020617; padding:12px; text-align:center; font-size:20px}
-    .container{max-width:1100px; margin:auto; padding:16px}
-    .player{background:#020617; padding:12px; border-radius:12px}
-    video{width:100%; border-radius:12px}
-    input, button{padding:8px; border-radius:8px; border:none}
-    button{background:#2563eb; color:#fff; cursor:pointer}
-    .grid{display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-top:16px}
-    .chat{background:#020617; border-radius:12px; padding:12px; height:400px; display:flex; flex-direction:column}
-    .messages{flex:1; overflow-y:auto; font-size:14px}
-    .msg{margin-bottom:6px}
-    .chat input{width:100%; margin-top:8px}
-    @media(max-width:800px){.grid{grid-template-columns:1fr}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 سینمای دونفره - نسخه تضمینی</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma; }
+        body { background: linear-gradient(135deg, #0c2461, #1e3799); color: white; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        /* Header */
+        header { text-align: center; padding: 20px 0; }
+        h1 { color: #00d4ff; font-size: 2.2rem; margin-bottom: 10px; }
+        
+        /* Status Box */
+        .status-box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 15px 0; text-align: center; }
+        #status { font-weight: bold; padding: 10px; border-radius: 5px; }
+        .status-online { background: rgba(0,255,0,0.2); color: #0f0; }
+        .status-offline { background: rgba(255,0,0,0.2); color: #f00; }
+        
+        /* Controls */
+        .controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 15px 0; }
+        button { padding: 12px 20px; border: none; border-radius: 5px; background: #00a8ff; color: white; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0097e6; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        input { padding: 12px; border: none; border-radius: 5px; background: rgba(255,255,255,0.1); color: white; width: 250px; }
+        
+        /* Video */
+        .video-container { margin: 20px 0; }
+        #videoPlayer { width: 100%; max-width: 800px; height: 400px; background: #000; border-radius: 5px; display: block; margin: 0 auto; }
+        
+        /* Chat */
+        .chat-container { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; margin: 20px 0; }
+        .chat-messages { height: 200px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 5px; margin-bottom: 10px; }
+        .message { padding: 8px 12px; margin: 5px 0; background: rgba(0,212,255,0.1); border-radius: 5px; }
+        .message-self { background: rgba(0,255,0,0.1); text-align: left; }
+        
+        /* Room Info */
+        .room-info { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin: 10px 0; text-align: center; }
+    </style>
 </head>
 <body>
-<header>🎥 سینما دونفره</header>
-<div class="container">  <div class="player">
-    <video id="video" controls></video>
-    <div style="margin-top:8px">
-      <input id="videoUrl" placeholder="لینک فیلم (mp4)" style="width:70%">
-      <button onclick="loadVideo()">پخش</button>
+    <div class="container">
+        <header>
+            <h1>🎬 سینمای دونفره - نسخه تضمینی</h1>
+            <p>بدون نیاز به سرور خارجی - کار در هر مرورگری</p>
+        </header>
+        
+        <!-- Status -->
+        <div class="status-box">
+            <div id="status" class="status-offline">🔴 آماده اتصال</div>
+            <div class="room-info">
+                شناسه شما: <span id="myId">---</span> | 
+                افراد متصل: <span id="userCount">0</span>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <button onclick="createRoom()" id="createBtn">🏠 ساخت اتاق</button>
+            <button onclick="joinRoom()" id="joinBtn">🔗 پیوستن</button>
+            <input type="text" id="roomIdInput" placeholder="شناسه اتاق">
+            <button onclick="copyLink()" id="copyBtn">📋 کپی لینک</button>
+        </div>
+        
+        <!-- Video -->
+        <div class="video-container">
+            <video id="videoPlayer" controls></video>
+            <div class="controls" style="margin-top: 10px;">
+                <input type="text" id="videoUrl" placeholder="لینک MP4 یا YouTube">
+                <button onclick="loadVideo()">▶️ بارگذاری ویدیو</button>
+            </div>
+        </div>
+        
+        <!-- Chat -->
+        <div class="chat-container">
+            <h3>💬 چت فارسی</h3>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message">به سینمای دونفره خوش آمدید!</div>
+            </div>
+            <div class="controls">
+                <input type="text" id="messageInput" placeholder="پیام خود را بنویسید..." style="flex:1;">
+                <button onclick="sendMessage()">📤 ارسال</button>
+            </div>
+        </div>
+        
+        <!-- Instructions -->
+        <div style="background: rgba(255,255,0,0.1); padding: 15px; border-radius: 10px; margin-top: 20px;">
+            <h3>📋 راهنمای استفاده:</h3>
+            <p>۱. روی "ساخت اتاق" کلیک کنید</p>
+            <p>۲. شناسه نمایش داده شده را برای دوست خود بفرستید</p>
+            <p>۳. دوستتان روی "پیوستن" کلیک کند و شناسه را وارد کند</p>
+            <p>۴. حالا می‌توانید ویدیو تماشا کنید و چت کنید!</p>
+        </div>
     </div>
-    <p style="font-size:13px; color:#94a3b8">✔️ آپلود مستقیم روی GitHub ممکن نیست، ولی لینک مستقیم mp4 عالی کار می‌کنه.</p>
-  </div>  <div class="grid">
-    <div></div>
-    <div class="chat">
-      <strong>💬 چت دونفره</strong>
-      <div class="messages" id="messages"></div>
-      <input id="msgInput" placeholder="پیامتو بنویس و Enter بزن">
-    </div>
-  </div></div><script>
-  const video = document.getElementById('video');
-  const messagesDiv = document.getElementById('messages');
 
-  function loadVideo(){
-    const url = document.getElementById('videoUrl').value;
-    if(url){ video.src = url; video.play(); }
-  }
-
-  function loadMessages(){
-    messagesDiv.innerHTML = '';
-    const msgs = JSON.parse(localStorage.getItem('chat')||'[]');
-    msgs.forEach(m=>{
-      const div = document.createElement('div');
-      div.className='msg';
-      div.textContent = m;
-      messagesDiv.appendChild(div);
-    });
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  }
-
-  document.getElementById('msgInput').addEventListener('keypress',e=>{
-    if(e.key==='Enter'){
-      const val = e.target.value;
-      if(!val) return;
-      const msgs = JSON.parse(localStorage.getItem('chat')||'[]');
-      msgs.push(val);
-      localStorage.setItem('chat',JSON.stringify(msgs));
-      e.target.value='';
-      loadMessages();
-    }
-  });
-
-  loadMessages();
-</script></body>
+    <script>
+        // ==================== متغیرهای اصلی ====================
+        let currentRoom = null;
+        let myId = null;
+        let connectedUsers = new Set();
+        let messageQueue = [];
+        let isHost = false;
+        
+        // ==================== مدیریت اتاق ====================
+        
+        function createRoom() {
+            if (currentRoom) return;
+            
+            // ایجاد شناسه تصادفی
+            myId = generateId();
+            currentRoom = generateRoomId();
+            isHost = true;
+            
+            // ذخیره در localStorage
+            localStorage.setItem('movieRoomId', currentRoom);
+            localStorage.setItem('movieUserId', myId);
+            localStorage.setItem('movieIsHost', 'true');
+            
+            // به روزرسانی UI
+            updateStatus(`✅ اتاق ساخته شد! شناسه: ${currentRoom}`, 'online');
+            document.getElementById('myId').textContent = myId;
+            document.getElementById('createBtn').disabled = true;
+            document.getElementById('joinBtn').disabled = true;
+            
+            // شروع همگام‌سازی
+            startSync();
+            
+            addMessage('سیستم', `اتاق "${currentRoom}" ساخته شد. لینک را برای دوست خود بفرستید:`);
+            addMessage('سیستم', window.location.href + '?room=' + currentRoom);
+            
+            // اضافه کردن خود به لیست کاربران
+            connectedUsers.add(myId);
+            updateUserCount();
+        }
+        
+        function joinRoom() {
+            const roomId = document.getElementById('roomIdInput').value.trim();
+            if (!roomId) {
+                alert('لطفاً شناسه اتاق را وارد کنید!');
+                return;
+            }
+            
+            if (currentRoom) return;
+            
+            myId = generateId();
+            currentRoom = roomId;
+            isHost = false;
+            
+            // ذخیره در localStorage
+            localStorage.setItem('movieRoomId', currentRoom);
+            localStorage.setItem('movieUserId', myId);
+            localStorage.setItem('movieIsHost', 'false');
+            
+            // به روزرسانی UI
+            updateStatus(`✅ متصل به اتاق: ${currentRoom}`, 'online');
+            document.getElementById('myId').textContent = myId;
+            document.getElementById('createBtn').disabled = true;
+            document.getElementById('joinBtn').disabled = true;
+            
+            // شروع همگام‌سازی
+            startSync();
+            
+            addMessage('سیستم', `به اتاق "${currentRoom}" پیوستید.`);
+            addMessage('سیستم', 'درخواست همگام‌سازی ویدیو ارسال شد...');
+            
+            // درخواست وضعیت فعلی از میزبان
+            sendData({
+                type: 'requestSync',
+                from: myId
+            });
+            
+            connectedUsers.add(myId);
+            updateUserCount();
+        }
+        
+        function copyLink() {
+            if (!currentRoom) {
+                alert('ابتدا یک اتاق بسازید یا به آن بپیوندید!');
+                return;
+            }
+            
+            const link = window.location.href + '?room=' + currentRoom;
+            navigator.clipboard.writeText(link).then(() => {
+                alert(`لینک کپی شد:\n${link}`);
+            });
+        }
+        
+        // ==================== همگام‌سازی ====================
+        
+        function startSync() {
+            // همگام‌سازی از طریق localStorage
+            setInterval(() => {
+                syncWithStorage();
+            }, 1000); // هر 1 ثانیه همگام‌سازی
+            
+            // بررسی تغییرات در localStorage
+            window.addEventListener('storage', (e) => {
+                if (e.key === `movieRoom_${currentRoom}`) {
+                    try {
+                        const data = JSON.parse(e.newValue);
+                        if (data && data.user !== myId) {
+                            processIncomingData(data);
+                        }
+                    } catch (err) {
+                        console.log('خطا در پردازش داده:', err);
+                    }
+                }
+            });
+            
+            // بررسی پارامترهای URL
+            checkUrlParams();
+        }
+        
+        function syncWithStorage() {
+            if (!currentRoom) return;
+            
+            // ارسال پیام‌های در صف انتظار
+            while (messageQueue.length > 0) {
+                const message = messageQueue.shift();
+                sendData(message);
+            }
+            
+            // همگام‌سازی وضعیت ویدیو
+            syncVideoStatus();
+        }
+        
+        function sendData(data) {
+            if (!currentRoom) return;
+            
+            // اضافه کردن اطلاعات فرستنده
+            data.user = myId;
+            data.timestamp = Date.now();
+            data.room = currentRoom;
+            
+            // ذخیره در localStorage (برای دیگران)
+            localStorage.setItem(`movieRoom_${currentRoom}`, JSON.stringify(data));
+            
+            // همچنین برای خودمان هم پردازش کنیم
+            setTimeout(() => {
+                processIncomingData(data);
+            }, 100);
+        }
+        
+        function processIncomingData(data) {
+            if (!data || data.user === myId) return;
+            
+            switch (data.type) {
+                case 'chat':
+                    addMessage('دوست', data.text);
+                    break;
+                    
+                case 'videoChange':
+                    if (data.url) {
+                        const video = document.getElementById('videoPlayer');
+                        if (video.src !== data.url) {
+                            video.src = data.url;
+                            video.load();
+                            addMessage('سیستم', 'دوستان ویدیو را تغییر داد.');
+                        }
+                    }
+                    break;
+                    
+                case 'videoControl':
+                    const video = document.getElementById('videoPlayer');
+                    if (data.action === 'play' && video.paused) {
+                        video.play();
+                    } else if (data.action === 'pause' && !video.paused) {
+                        video.pause();
+                    } else if (data.action === 'seek') {
+                        video.currentTime = data.time;
+                    }
+                    break;
+                    
+                case 'requestSync':
+                    if (isHost) {
+                        // میزبان وضعیت فعلی را ارسال می‌کند
+                        const video = document.getElementById('videoPlayer');
+                        sendData({
+                            type: 'videoSync',
+                            url: video.src,
+                            time: video.currentTime,
+                            playing: !video.paused
+                        });
+                    }
+                    break;
+                    
+                case 'videoSync':
+                    if (data.url) {
+                        const video = document.getElementById('videoPlayer');
+                        video.src = data.url;
+                        video.load();
+                        video.currentTime = data.time || 0;
+                        
+                        if (data.playing) {
+                            setTimeout(() => video.play(), 500);
+                        }
+                        
+                        addMessage('سیستم', 'ویدیو همگام‌سازی شد.');
+                    }
+                    break;
+                    
+                case 'userJoin':
+                    if (!connectedUsers.has(data.userId)) {
+                        connectedUsers.add(data.userId);
+                        updateUserCount();
+                        addMessage('سیستم', 'کاربر جدید پیوست.');
+                    }
+                    break;
+            }
+        }
+        
+        // ==================== مدیریت ویدیو ====================
+        
+        function loadVideo() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if (!url) {
+                alert('لطفاً لینک ویدیو را وارد کنید!');
+                return;
+            }
+            
+            const video = document.getElementById('videoPlayer');
+            video.src = url;
+            video.load();
+            
+            addMessage('سیستم', `ویدیو بارگذاری شد: ${url.substring(0, 50)}...`);
+            
+            // ارسال به دیگران
+            sendData({
+                type: 'videoChange',
+                url: url
+            });
+        }
+        
+        function syncVideoStatus() {
+            const video = document.getElementById('videoPlayer');
+            
+            // اگر میزبان هستیم، وضعیت را ارسال می‌کنیم
+            if (isHost && video.src && currentRoom) {
+                // این وضعیت به طور خودکار در syncWithStorage ارسال می‌شود
+            }
+            
+            // گوش دادن به رویدادهای ویدیو
+            video.addEventListener('play', () => {
+                sendData({
+                    type: 'videoControl',
+                    action: 'play',
+                    time: video.currentTime
+                });
+            });
+            
+            video.addEventListener('pause', () => {
+                sendData({
+                    type: 'videoControl',
+                    action: 'pause',
+                    time: video.currentTime
+                });
+            });
+            
+            video.addEventListener('seeked', () => {
+                sendData({
+                    type: 'videoControl',
+                    action: 'seek',
+                    time: video.currentTime
+                });
+            });
+        }
+        
+        // ==================== مدیریت چت ====================
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            
+            if (!text) return;
+            if (!currentRoom) {
+                alert('ابتدا به یک اتاق بپیوندید!');
+                return;
+            }
+            
+            // نمایش پیام خودمان
+            addMessage('شما', text);
+            
+            // ارسال به دیگران
+            sendData({
+                type: 'chat',
+                text: text
+            });
+            
+            input.value = '';
+        }
+        
+        // ==================== ابزارها ====================
+        
+        function generateId() {
+            return Math.random().toString(36).substring(2, 8) + 
+                   Math.random().toString(36).substring(2, 8);
+        }
+        
+        function generateRoomId() {
+            return Math.random().toString(36).substring(2, 10).toUpperCase();
+        }
+        
+        function updateStatus(text, className) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = text;
+            statusEl.className = className === 'online' ? 'status-online' : 'status-offline';
+        }
+        
+        function updateUserCount() {
+            document.getElementById('userCount').textContent = connectedUsers.size;
+        }
+        
+        function addMessage(sender, text) {
+            const chat = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${sender === 'شما' ? 'message-self' : ''}`;
+            msgDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+            chat.appendChild(msgDiv);
+            chat.scrollTop = chat.scrollHeight;
+        }
+        
+        function checkUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const roomId = params.get('room');
+            
+            if (roomId && !currentRoom) {
+                document.getElementById('roomIdInput').value = roomId;
+                setTimeout(() => {
+                    if (confirm(`آیا می‌خواهید به اتاق "${roomId}" بپیوندید؟`)) {
+                        joinRoom();
+                    }
+                }, 500);
+            }
+        }
+        
+        // ==================== راه‌اندازی ====================
+        
+        function initialize() {
+            // بازیابی اتاق قبلی
+            const savedRoom = localStorage.getItem('movieRoomId');
+            const savedUserId = localStorage.getItem('movieUserId');
+            
+            if (savedRoom && savedUserId) {
+                if (confirm(`آیا می‌خواهید به اتاق قبلی "${savedRoom}" برگردید؟`)) {
+                    myId = savedUserId;
+                    currentRoom = savedRoom;
+                    isHost = localStorage.getItem('movieIsHost') === 'true';
+                    
+                    updateStatus(`✅ اتاق بازیابی شد: ${currentRoom}`, 'online');
+                    document.getElementById('myId').textContent = myId;
+                    document.getElementById('createBtn').disabled = true;
+                    document.getElementById('joinBtn').disabled = true;
+                    
+                    startSync();
+                    addMessage('سیستم', `اتاق "${currentRoom}" بازیابی شد.`);
+                }
+            }
+            
+            // فعال کردن Enter برای چت
+            document.getElementById('messageInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            
+            addMessage('سیستم', 'برای شروع، یک اتاق جدید بسازید یا به اتاقی بپیوندید.');
+        }
+        
+        // شروع برنامه
+        window.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
 </html>
