@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تماشای دو نفره P2P | فارسی</title>
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <title>🎬 سینمای دو نفره - تماشای همزمان</title>
     <style>
         * {
             margin: 0;
@@ -12,324 +11,874 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            background: linear-gradient(135deg, #0c2461, #1e3799);
             color: white;
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
-        
+
         header {
             text-align: center;
             margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         h1 {
             color: #00d4ff;
-            margin-bottom: 15px;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         }
-        
+
+        .subtitle {
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+
+        /* Connection Box */
         .connection-box {
             background: rgba(0, 0, 0, 0.3);
             padding: 20px;
             border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
-        input, button {
-            padding: 12px 20px;
-            margin: 5px;
-            border-radius: 50px;
-            border: none;
-            font-size: 16px;
-        }
-        
-        input {
-            width: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
+            margin-bottom: 25px;
             text-align: center;
         }
-        
+
+        #status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .online { background: rgba(0, 255, 0, 0.15); color: #00ff88; }
+        .offline { background: rgba(255, 0, 0, 0.15); color: #ff5555; }
+        .connecting { background: rgba(255, 255, 0, 0.15); color: #ffff00; }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
         button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
             background: linear-gradient(90deg, #00d4ff, #0088ff);
             color: white;
-            cursor: pointer;
-            transition: 0.3s;
             font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+            min-width: 180px;
         }
-        
+
         button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px #00d4ff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
         }
-        
-        .main {
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        button.danger {
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+        }
+
+        input[type="text"] {
+            padding: 12px 20px;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 300px;
+            font-size: 16px;
+            text-align: center;
+            margin: 10px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        /* Main Content */
+        .main-content {
             display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 30px;
+            margin-bottom: 30px;
         }
-        
+
         @media (max-width: 900px) {
-            .main { flex-direction: column; }
+            .main-content {
+                flex-direction: column;
+            }
         }
-        
+
+        /* Video Section */
         .video-section {
-            flex: 2;
+            flex: 3;
         }
-        
+
+        .video-container {
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+
         #videoPlayer {
             width: 100%;
             height: 400px;
-            background: black;
-            border-radius: 10px;
-            margin-bottom: 15px;
+            display: block;
         }
-        
+
+        .video-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Chat Section */
         .chat-section {
-            flex: 1;
+            flex: 2;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
-            padding: 15px;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
-        
-        #chatMessages {
-            flex: 1;
-            overflow-y: auto;
-            max-height: 300px;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 5px;
-        }
-        
-        .message {
-            padding: 8px 12px;
-            margin: 5px 0;
-            background: rgba(0, 212, 255, 0.2);
-            border-radius: 10px;
-            border-right: 3px solid #00d4ff;
-        }
-        
-        .status {
+
+        .chat-header {
+            background: linear-gradient(90deg, #0088ff, #00d4ff);
+            padding: 15px;
             text-align: center;
-            padding: 10px;
-            background: rgba(255, 255, 0, 0.1);
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        
-        .online {
-            color: #00ff88;
             font-weight: bold;
         }
-        
-        .offline {
-            color: #ff5555;
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            max-height: 300px;
+            min-height: 200px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .message {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background: rgba(0, 212, 255, 0.1);
+            border-right: 3px solid #00d4ff;
+        }
+
+        .message.self {
+            background: rgba(0, 255, 0, 0.1);
+            border-right-color: #00ff88;
+            text-align: left;
+        }
+
+        .message.system {
+            background: rgba(255, 255, 0, 0.1);
+            border-right-color: #ffaa00;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* File Upload */
+        .upload-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .file-input {
+            margin: 15px 0;
+        }
+
+        /* User Info */
+        .user-info {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        #myPeerId {
+            font-weight: bold;
+            color: #00ff88;
+            font-size: 1.2em;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            font-size: 0.9em;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #00d4ff, #0088ff);
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎬 تماشای دو نفره فیلم (مستقیم)</h1>
-            <p>نیاز به سرور ندارد | مستقیم به دوستت وصل شو</p>
+            <h1>🎬 سینمای دو نفره</h1>
+            <p class="subtitle">تماشای همزمان فیلم + چت فارسی | بدون نیاز به سرور</p>
         </header>
-        
+
         <div class="connection-box">
-            <div id="status" class="status offline">🔴 قطع</div>
-            <input type="text" id="peerIdInput" placeholder="آی‌دی دوستت را اینجا بنویس">
-            <button onclick="connectToPeer()">🔗 وصل شدن به دوست</button>
-            <button onclick="createNewRoom()">🆕 ساخت اتاق جدید</button>
-            <br>
-            <small>آی‌دی شما: <span id="myId">---</span></small>
+            <div id="status" class="offline">🔴 در حالت آفلاین</div>
+            
+            <div class="buttons">
+                <button onclick="createRoom()" id="createBtn">🏠 ساخت اتاق جدید</button>
+                <button onclick="joinRoom()" id="joinBtn">🔗 پیوستن به اتاق</button>
+                <button onclick="disconnect()" id="disconnectBtn" class="danger" disabled>✖️ قطع اتصال</button>
+            </div>
+            
+            <div>
+                <input type="text" id="roomIdInput" placeholder="شناسه اتاق را وارد کنید...">
+            </div>
+            
+            <div class="user-info">
+                <div>شناسه شما: <span id="myPeerId">---</span></div>
+                <div>اتصال: <span id="connectionStatus">هیچ‌کس</span></div>
+            </div>
         </div>
-        
-        <div class="main">
+
+        <div class="main-content">
             <div class="video-section">
-                <video id="videoPlayer" controls></video>
-                <div>
-                    <input type="text" id="videoUrl" placeholder="لینک MP4 یا YouTube" style="width: 70%;">
-                    <button onclick="loadVideo()">▶️ بارگذاری ویدئو</button>
+                <div class="video-container">
+                    <video id="videoPlayer" controls>
+                        مرورگر شما از پخش ویدئو پشتیبانی نمی‌کند.
+                    </video>
                 </div>
-                <div class="status" id="videoStatus">ویدئو بارگذاری نشده</div>
+                
+                <div class="video-controls">
+                    <input type="text" id="videoUrl" placeholder="لینک مستقیم MP4 یا YouTube">
+                    <button onclick="loadVideo()">▶️ بارگذاری ویدئو</button>
+                    <button onclick="shareVideo()">📤 اشتراک ویدئو</button>
+                </div>
             </div>
             
             <div class="chat-section">
-                <h3>💬 چت فارسی</h3>
-                <div id="chatMessages">
-                    <div class="message">به تماشای دو نفره خوش آمدید!</div>
+                <div class="chat-header">💬 چت فارسی</div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message system">
+                        به سینمای دو نفره خوش آمدید! برای شروع، یک اتاق جدید بسازید یا به اتاقی بپیوندید.
+                    </div>
                 </div>
-                <div>
-                    <input type="text" id="messageInput" placeholder="پیامتان..." style="width: 70%;">
+                <div class="chat-input">
+                    <input type="text" id="messageInput" placeholder="پیام خود را بنویسید..." onkeypress="handleKeyPress(event)">
                     <button onclick="sendMessage()">📤 ارسال</button>
                 </div>
             </div>
         </div>
-        
-        <footer style="text-align: center; margin-top: 20px; color: #aaa;">
-            <p>توسط PeerJS | کافی است یک نفر لینک ویدئو را وارد کند</p>
+
+        <div class="upload-section">
+            <h3>📤 آپلود فایل ویدئو</h3>
+            <p>فایل MP4 خود را انتخاب کنید (حداکثر 50MB)</p>
+            <div class="file-input">
+                <input type="file" id="fileInput" accept="video/mp4,video/webm" style="color: white;">
+                <button onclick="uploadVideo()">آپلود و اشتراک</button>
+            </div>
+            <div id="uploadStatus"></div>
+        </div>
+
+        <footer>
+            <p>ساخته شده با ❤️ | برای استفاده خصوصی دو نفر | لینک اتاق را برای دوست خود بفرستید!</p>
+            <p>💡 نکته: ممکن است برای اولین اتصال ۱۰-۲۰ ثانیه زمان نیاز باشد.</p>
         </footer>
     </div>
 
     <script>
-        // متغیرهای全局
-        let peer;
-        let conn;
-        let myPeerId;
+        // متغیرهای اصلی
+        let peer = null;
+        let conn = null;
+        let dataChannel = null;
+        let currentRoom = null;
+        let myPeerId = null;
+
+        // عناصر DOM
+        const statusEl = document.getElementById('status');
+        const myPeerIdEl = document.getElementById('myPeerId');
+        const connectionStatusEl = document.getElementById('connectionStatus');
+        const roomIdInput = document.getElementById('roomIdInput');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoUrlInput = document.getElementById('videoUrl');
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const fileInput = document.getElementById('fileInput');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const createBtn = document.getElementById('createBtn');
+        const joinBtn = document.getElementById('joinBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+
+        // حالت‌های اتصال
+        const CONNECTION_STATES = {
+            DISCONNECTED: 'disconnected',
+            CONNECTING: 'connecting',
+            CONNECTED: 'connected'
+        };
         
-        // ایجاد اتصال Peer
-        function initializePeer() {
+        let connectionState = CONNECTION_STATES.DISCONNECTED;
+
+        // ==================== مدیریت اتصال ====================
+
+        // ایجاد اتاق جدید
+        function createRoom() {
+            if (peer) return;
+            
+            updateStatus('در حال ایجاد اتاق...', 'connecting');
+            
+            // استفاده از PeerJS با سرورهای رایگان قابل اعتماد
             peer = new Peer({
                 host: '0.peerjs.com',
                 port: 443,
                 path: '/',
-                debug: 2
-            });
-            
-            peer.on('open', (id) => {
-                myPeerId = id;
-                document.getElementById('myId').textContent = id;
-                document.getElementById('status').innerHTML = `🟢 آنلاین - آی‌دی شما: <span class="online">${id}</span>`;
-                document.getElementById('status').className = 'status online';
-                
-                // نمایش لینک برای اشتراک‌گذاری
-                const shareLink = `${window.location.href}?join=${id}`;
-                console.log('🔗 لینک دعوت:', shareLink);
-                alert(`اتصال برقرار شد!\n\nآی‌دی شما: ${id}\n\nاین لینک را برای دوستت بفرست:\n${shareLink}`);
-            });
-            
-            peer.on('connection', (connection) => {
-                conn = connection;
-                setupConnection();
-            });
-            
-            peer.on('error', (err) => {
-                console.error('خطا:', err);
-                document.getElementById('status').innerHTML = `🔴 خطا: ${err.type}`;
-            });
-        }
-        
-        // تنظیمات اتصال
-        function setupConnection() {
-            conn.on('open', () => {
-                document.getElementById('status').innerHTML = '🟢 متصل به دوستت';
-                addMessage('سیستم', 'اتصال با دوستت برقرار شد!');
-            });
-            
-            conn.on('data', (data) => {
-                if (data.type === 'chat') {
-                    addMessage('دوست', data.message);
-                } else if (data.type === 'videoControl') {
-                    const video = document.getElementById('videoPlayer');
-                    video.currentTime = data.time;
-                    if (data.play && video.paused) video.play();
-                    if (!data.play && !video.paused) video.pause();
-                } else if (data.type === 'videoUrl') {
-                    document.getElementById('videoPlayer').src = data.url;
-                    addMessage('سیستم', 'دوستم ویدئو را تغییر داد');
+                secure: true,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:global.stun.twilio.com:3478' }
+                    ]
                 }
             });
-            
-            conn.on('close', () => {
-                document.getElementById('status').innerHTML = '🔴 اتصال قطع شد';
-                addMessage('سیستم', 'دوستت قطع شد');
+
+            peer.on('open', (id) => {
+                myPeerId = id;
+                myPeerIdEl.textContent = id;
+                currentRoom = id;
+                roomIdInput.value = id;
+                
+                updateStatus('اتاق ساخته شد! منتظر پیوستن دوست...', 'online');
+                updateConnectionStatus('در انتظار دوست...');
+                
+                createBtn.disabled = true;
+                joinBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                
+                // ایجاد لینک دعوت
+                const inviteLink = `${window.location.href}?join=${id}`;
+                addSystemMessage(`✅ اتاق با شناسه "${id}" ساخته شد.`);
+                addSystemMessage(`📨 لینک دعوت: ${inviteLink}`);
+                addSystemMessage('لینک بالا را برای دوست خود کپی و ارسال کنید.');
+            });
+
+            peer.on('connection', (connection) => {
+                setupDataConnection(connection);
+            });
+
+            peer.on('error', (err) => {
+                console.error('خطای PeerJS:', err);
+                
+                // مدیریت خطاهای رایج
+                if (err.type === 'browser-incompatible') {
+                    updateStatus('مرورگر شما سازگار نیست. لطفاً از Chrome یا Firefox جدید استفاده کنید.', 'offline');
+                } else if (err.type === 'disconnected') {
+                    updateStatus('اتصال قطع شد.', 'offline');
+                } else if (err.type === 'network') {
+                    updateStatus('مشکل شبکه. لطفاً اینترنت خود را چک کنید.', 'offline');
+                } else {
+                    updateStatus(`خطا: ${err.type}`, 'offline');
+                }
+                
+                resetConnection();
+            });
+
+            peer.on('disconnected', () => {
+                updateStatus('اتصال قطع شد.', 'offline');
+                resetConnection();
             });
         }
-        
-        // اتصال به دوست
-        function connectToPeer() {
-            const friendId = document.getElementById('peerIdInput').value.trim();
-            if (!friendId) return alert('آی‌دی دوستت را وارد کن!');
-            
-            conn = peer.connect(friendId);
-            setupConnection();
-        }
-        
-        // ساخت اتاق جدید
-        function createNewRoom() {
-            initializePeer();
-            document.getElementById('peerIdInput').placeholder = 'آی‌دی بالا را به دوستت بده';
-        }
-        
-        // ارسال پیام
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            if (!message || !conn) return;
-            
-            conn.send({ type: 'chat', message: message });
-            addMessage('من', message);
-            input.value = '';
-        }
-        
-        // بارگذاری ویدئو
-        function loadVideo() {
-            const url = document.getElementById('videoUrl').value.trim();
-            if (!url) return alert('لینک را وارد کن!');
-            
-            const video = document.getElementById('videoPlayer');
-            video.src = url;
-            video.load();
-            
-            if (conn) {
-                conn.send({ type: 'videoUrl', url: url });
+
+        // پیوستن به اتاق
+        function joinRoom() {
+            const roomId = roomIdInput.value.trim();
+            if (!roomId) {
+                alert('لطفاً شناسه اتاق را وارد کنید!');
+                return;
             }
             
-            document.getElementById('videoStatus').textContent = 'ویدئو بارگذاری شد';
-        }
-        
-        // افزودن پیام به چت
-        function addMessage(sender, text) {
-            const chat = document.getElementById('chatMessages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message';
-            msgDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
-            chat.appendChild(msgDiv);
-            chat.scrollTop = chat.scrollHeight;
-        }
-        
-        // کنترل‌های ویدئو
-        const videoPlayer = document.getElementById('videoPlayer');
-        videoPlayer.addEventListener('play', () => sendVideoControl());
-        videoPlayer.addEventListener('pause', () => sendVideoControl());
-        videoPlayer.addEventListener('seeked', () => sendVideoControl());
-        
-        function sendVideoControl() {
-            if (!conn) return;
-            conn.send({
-                type: 'videoControl',
-                time: videoPlayer.currentTime,
-                play: !videoPlayer.paused
+            if (peer) return;
+            
+            updateStatus('در حال اتصال به اتاق...', 'connecting');
+            
+            peer = new Peer({
+                host: '0.peerjs.com',
+                port: 443,
+                path: '/',
+                secure: true,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:global.stun.twilio.com:3478' }
+                    ]
+                }
+            });
+
+            peer.on('open', (id) => {
+                myPeerId = id;
+                myPeerIdEl.textContent = id;
+                currentRoom = roomId;
+                
+                // اتصال به اتاق
+                const connection = peer.connect(roomId, {
+                    reliable: true,
+                    serialization: 'json'
+                });
+                
+                setupDataConnection(connection);
+                
+                createBtn.disabled = true;
+                joinBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            });
+
+            peer.on('error', (err) => {
+                console.error('خطای اتصال:', err);
+                updateStatus(`خطا در اتصال: ${err.message || err.type}`, 'offline');
+                resetConnection();
             });
         }
-        
-        // بررسی لینک دعوت در URL
-        window.addEventListener('DOMContentLoaded', () => {
+
+        // تنظیم اتصال داده
+        function setupDataConnection(connection) {
+            conn = connection;
+            dataChannel = connection;
+            
+            connection.on('open', () => {
+                updateStatus('✅ متصل به دوست!', 'online');
+                updateConnectionStatus('متصل به دوست');
+                addSystemMessage('🎉 اتصال با دوست شما برقرار شد!');
+                addSystemMessage('اکنون می‌توانید ویدئو تماشا کنید و چت کنید.');
+                
+                // درخواست وضعیت فعلی ویدئو
+                sendData({ type: 'requestSync' });
+            });
+
+            connection.on('data', (data) => {
+                handleIncomingData(data);
+            });
+
+            connection.on('close', () => {
+                updateStatus('🔴 اتصال قطع شد', 'offline');
+                updateConnectionStatus('قطع شده');
+                addSystemMessage('دوستان شما از اتاق خارج شد.');
+                resetConnection();
+            });
+
+            connection.on('error', (err) => {
+                console.error('خطای اتصال داده:', err);
+                addSystemMessage('خطایی در اتصال رخ داد.');
+            });
+        }
+
+        // قطع اتصال
+        function disconnect() {
+            if (dataChannel) {
+                dataChannel.close();
+            }
+            if (peer) {
+                peer.destroy();
+            }
+            resetConnection();
+            updateStatus('🔴 قطع اتصال انجام شد', 'offline');
+            updateConnectionStatus('هیچ‌کس');
+            addSystemMessage('اتصال قطع شد.');
+        }
+
+        // بازنشانی اتصال
+        function resetConnection() {
+            if (peer) {
+                peer.destroy();
+            }
+            peer = null;
+            conn = null;
+            dataChannel = null;
+            currentRoom = null;
+            
+            createBtn.disabled = false;
+            joinBtn.disabled = false;
+            disconnectBtn.disabled = true;
+        }
+
+        // ==================== مدیریت ویدئو ====================
+
+        // بارگذاری ویدئو از لینک
+        function loadVideo() {
+            const url = videoUrlInput.value.trim();
+            if (!url) {
+                alert('لطفاً لینک ویدئو را وارد کنید!');
+                return;
+            }
+            
+            videoPlayer.src = url;
+            videoPlayer.load();
+            
+            addSystemMessage(`ویدئو بارگذاری شد: ${url.substring(0, 50)}...`);
+            
+            // اشتراک با دوست
+            if (dataChannel && dataChannel.open) {
+                sendData({
+                    type: 'videoChange',
+                    url: url,
+                    sender: myPeerId
+                });
+            }
+        }
+
+        // اشتراک ویدئوی فعلی
+        function shareVideo() {
+            if (!videoPlayer.src) {
+                alert('لطفاً ابتدا یک ویدئو بارگذاری کنید!');
+                return;
+            }
+            
+            if (dataChannel && dataChannel.open) {
+                sendData({
+                    type: 'videoChange',
+                    url: videoPlayer.src,
+                    sender: myPeerId,
+                    currentTime: videoPlayer.currentTime,
+                    isPlaying: !videoPlayer.paused
+                });
+                addSystemMessage('ویدئو برای دوست شما ارسال شد.');
+            } else {
+                alert('ابتدا باید به یک دوست متصل شوید!');
+            }
+        }
+
+        // آپلود فایل ویدئو
+        function uploadVideo() {
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('لطفاً یک فایل ویدئو انتخاب کنید!');
+                return;
+            }
+            
+            if (file.size > 50 * 1024 * 1024) {
+                alert('حجم فایل باید کمتر از ۵۰ مگابایت باشد!');
+                return;
+            }
+            
+            if (!file.type.startsWith('video/')) {
+                alert('لطفاً فقط فایل ویدئو انتخاب کنید!');
+                return;
+            }
+            
+            uploadStatus.innerHTML = '<span style="color:#00ff88">⏳ در حال آپلود...</span>';
+            
+            // ایجاد URL موقت برای فایل
+            const videoUrl = URL.createObjectURL(file);
+            videoPlayer.src = videoUrl;
+            videoPlayer.load();
+            
+            uploadStatus.innerHTML = `<span style="color:#00ff88">✅ آپلود موفق: ${file.name} (${Math.round(file.size/1024/1024)}MB)</span>`;
+            addSystemMessage(`فایل "${file.name}" آپلود شد.`);
+            
+            // اشتراک با دوست
+            if (dataChannel && dataChannel.open) {
+                // برای فایل‌های بزرگ، فقط نام فایل را ارسال می‌کنیم
+                sendData({
+                    type: 'videoInfo',
+                    fileName: file.name,
+                    fileSize: file.size,
+                    message: `فایل "${file.name}" را آپلود کرد. لطفاً همان فایل را بارگذاری کنید.`
+                });
+            }
+        }
+
+        // ==================== مدیریت چت ====================
+
+        // ارسال پیام
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+            
+            if (!dataChannel || !dataChannel.open) {
+                alert('ابتدا باید به یک دوست متصل شوید!');
+                return;
+            }
+            
+            // ارسال پیام
+            sendData({
+                type: 'chat',
+                text: text,
+                sender: myPeerId,
+                time: new Date().toLocaleTimeString('fa-IR')
+            });
+            
+            // نمایش پیام خودمان
+            addMessage(text, true);
+            messageInput.value = '';
+        }
+
+        // مدیریت کلید Enter
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // ==================== مدیریت داده‌ها ====================
+
+        // ارسال داده
+        function sendData(data) {
+            if (dataChannel && dataChannel.open) {
+                dataChannel.send(data);
+            } else {
+                console.warn('کانال داده باز نیست.');
+            }
+        }
+
+        // پردازش داده دریافتی
+        function handleIncomingData(data) {
+            switch (data.type) {
+                case 'chat':
+                    addMessage(data.text, false, data.sender);
+                    break;
+                    
+                case 'videoChange':
+                    if (data.url) {
+                        videoPlayer.src = data.url;
+                        videoPlayer.load();
+                        
+                        if (data.currentTime !== undefined) {
+                            videoPlayer.currentTime = data.currentTime;
+                        }
+                        
+                        if (data.isPlaying !== undefined) {
+                            if (data.isPlaying) {
+                                videoPlayer.play().catch(e => console.log('اتوماتیک پلی نشد'));
+                            } else {
+                                videoPlayer.pause();
+                            }
+                        }
+                        
+                        addSystemMessage(`دوستان ویدئو را تغییر داد: ${data.url.substring(0, 50)}...`);
+                    }
+                    break;
+                    
+                case 'videoControl':
+                    if (data.action === 'play') {
+                        videoPlayer.play().catch(e => console.log('پلی نشد'));
+                    } else if (data.action === 'pause') {
+                        videoPlayer.pause();
+                    } else if (data.action === 'seek') {
+                        videoPlayer.currentTime = data.time;
+                    }
+                    break;
+                    
+                case 'videoInfo':
+                    addSystemMessage(`📁 ${data.message}`);
+                    break;
+                    
+                case 'requestSync':
+                    // ارسال وضعیت فعلی ویدئو
+                    if (videoPlayer.src) {
+                        sendData({
+                            type: 'videoSync',
+                            url: videoPlayer.src,
+                            currentTime: videoPlayer.currentTime,
+                            isPlaying: !videoPlayer.paused
+                        });
+                    }
+                    break;
+                    
+                case 'videoSync':
+                    if (data.url) {
+                        videoPlayer.src = data.url;
+                        videoPlayer.load();
+                        
+                        if (data.currentTime !== undefined) {
+                            setTimeout(() => {
+                                videoPlayer.currentTime = data.currentTime;
+                            }, 500);
+                        }
+                        
+                        if (data.isPlaying) {
+                            setTimeout(() => {
+                                videoPlayer.play().catch(e => console.log('پلی نشد'));
+                            }, 1000);
+                        }
+                        
+                        addSystemMessage('ویدئو همگام‌سازی شد.');
+                    }
+                    break;
+            }
+        }
+
+        // ==================== کنترل‌های ویدئو ====================
+
+        // ارسال کنترل‌های ویدئو
+        videoPlayer.addEventListener('play', () => {
+            sendData({
+                type: 'videoControl',
+                action: 'play',
+                time: videoPlayer.currentTime
+            });
+        });
+
+        videoPlayer.addEventListener('pause', () => {
+            sendData({
+                type: 'videoControl',
+                action: 'pause',
+                time: videoPlayer.currentTime
+            });
+        });
+
+        videoPlayer.addEventListener('seeked', () => {
+            sendData({
+                type: 'videoControl',
+                action: 'seek',
+                time: videoPlayer.currentTime
+            });
+        });
+
+        // ==================== رابط کاربری ====================
+
+        // بروزرسانی وضعیت
+        function updateStatus(text, className) {
+            statusEl.textContent = text;
+            statusEl.className = className;
+            
+            if (className === 'online') {
+                statusEl.innerHTML = '🟢 ' + text;
+            } else if (className === 'offline') {
+                statusEl.innerHTML = '🔴 ' + text;
+            } else if (className === 'connecting') {
+                statusEl.innerHTML = '🟡 ' + text;
+            }
+        }
+
+        // بروزرسانی وضعیت اتصال
+        function updateConnectionStatus(text) {
+            connectionStatusEl.textContent = text;
+        }
+
+        // افزودن پیام به چت
+        function addMessage(text, isSelf = false, sender = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSelf ? 'self' : ''}`;
+            
+            const time = new Date().toLocaleTimeString('fa-IR');
+            const senderName = isSelf ? 'شما' : (sender || 'دوستان');
+            
+            messageDiv.innerHTML = `
+                <div><strong>${senderName}:</strong> ${text}</div>
+                <div style="font-size:0.8em; color:#aaa; text-align:left;">${time}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // افزودن پیام سیستم
+        function addSystemMessage(text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system';
+            
+            const time = new Date().toLocaleTimeString('fa-IR');
+            
+            messageDiv.innerHTML = `
+                <div>${text}</div>
+                <div style="font-size:0.8em; color:#aaa;">${time}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // ==================== راه‌اندازی اولیه ====================
+
+        // بررسی پارامترهای URL
+        function checkUrlParams() {
             const urlParams = new URLSearchParams(window.location.search);
             const joinId = urlParams.get('join');
             
             if (joinId) {
-                document.getElementById('peerIdInput').value = joinId;
-                setTimeout(() => {
-                    initializePeer();
-                    setTimeout(() => connectToPeer(), 1000);
-                }, 500);
-            } else {
-                initializePeer();
+                roomIdInput.value = joinId;
+                addSystemMessage(`📨 لینک دعوت شناسایی شد. برای پیوستن دکمه "پیوستن به اتاق" را بزنید.`);
             }
-        });
+        }
+
+        // راه‌اندازی اولیه
+        function initialize() {
+            updateStatus('آماده اتصال...', 'offline');
+            updateConnectionStatus('هیچ‌کس');
+            checkUrlParams();
+            
+            addSystemMessage('🎬 به سینمای دو نفره خوش آمدید!');
+            addSystemMessage('برای شروع، یک اتاق جدید بسازید یا به اتاقی بپیوندید.');
+            
+            // تست WebRTC
+            if (!navigator.mediaDevices || !window.RTCPeerConnection) {
+                updateStatus('مرورگر شما از WebRTC پشتیبانی نمی‌کند. لطفاً از Chrome یا Firefox استفاده کنید.', 'offline');
+            }
+        }
+
+        // شروع برنامه
+        window.onload = initialize;
     </script>
 </body>
 </html>
