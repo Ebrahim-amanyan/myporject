@@ -1,29 +1,91 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="fa">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <title>سینمای دونفره 🔒🎬</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {margin:0;font-family:sans-serif;background:#0f172a;color:#e5e7eb;min-height:100vh}
+    header,footer{background:#020617;text-align:center;padding:10px}
+    main{display:grid;grid-template-columns:2fr 1fr;gap:10px;padding:10px}
+    .card{background:#020617;border-radius:12px;padding:10px}
+    iframe{width:100%;height:420px;border:none;border-radius:10px}
+    input,button{width:100%;padding:8px;margin-top:6px;border:none;border-radius:8px}
+    button{background:#2563eb;color:#fff;cursor:pointer}
+    #chat{height:300px;overflow-y:auto;background:#020617;border-radius:8px;padding:6px}
+    .msg{font-size:14px;margin-bottom:4px}
+    #lock{display:flex;align-items:center;justify-content:center;height:100vh}
+    @media(max-width:768px){main{grid-template-columns:1fr}iframe{height:300px}}
+  </style>
 </head>
-<style>
+<body><div id="lock">
+  <div class="card" style="max-width:300px;width:100%">
+    <h3>🔒 ورود</h3>
+    <input id="password" type="password" placeholder="رمز عبور" />
+    <button onclick="unlock()">ورود</button>
+    <p style="font-size:12px;opacity:.7">رمز داخل کد قابل تغییر است</p>
+  </div>
+</div><div id="app" style="display:none">
+  <header>🎥 سینمای دونفره</header>  <main>
+    <div class="card">
+      <h3>ویدیو</h3>
+      <input id="videoLink" placeholder="لینک embed یا preview" />
+      <button onclick="loadVideo()">نمایش ویدیو</button>
+      <iframe id="player"></iframe>
+    </div><div class="card">
+  <h3>💬 چت آنلاین</h3>
+  <div id="chat"></div>
+  <input id="name" placeholder="اسم" />
+  <input id="message" placeholder="پیام..." />
+  <button onclick="sendMessage()">ارسال</button>
+</div>
 
-        body{
-            background-color: black;
-        }
+  </main>  <footer>❤️ فقط برای دو نفر</footer>
+</div><!-- Firebase --><script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script><script>
+  /* ===== تنظیمات ===== */
+  const SITE_PASSWORD = "1234"; // ← اینو عوض کن
 
-    .contsne{
-        display: flex;
-        align-items: center;
-        justify-self: center;
-        height: 100vh;
-        border: 1px solid wheat;
-    }
-</style>
-<body>
-    <div class="contsne">
-        <video controls autoplay muted width="800">
-            <source src="./vid/Rango.mkv" type="video/mp4">
-        </video>
-    </div>
-</body>
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const chatRef = db.ref("chat");
+
+  /* ===== قفل ===== */
+  function unlock(){
+    if(document.getElementById('password').value === SITE_PASSWORD){
+      document.getElementById('lock').style.display='none';
+      document.getElementById('app').style.display='block';
+    } else alert('رمز اشتباهه');
+  }
+
+  /* ===== ویدیو ===== */
+  function loadVideo(){
+    document.getElementById('player').src = document.getElementById('videoLink').value;
+  }
+
+  /* ===== چت ===== */
+  const chatBox = document.getElementById('chat');
+
+  function sendMessage(){
+    const name = document.getElementById('name').value || 'ناشناس';
+    const text = document.getElementById('message').value;
+    if(!text) return;
+    chatRef.push({name,text});
+    document.getElementById('message').value='';
+  }
+
+  chatRef.limitToLast(50).on('child_added',snap=>{
+    const m = snap.val();
+    const div = document.createElement('div');
+    div.className='msg';
+    div.textContent = m.name + ': ' + m.text;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+</script></body>
 </html>
